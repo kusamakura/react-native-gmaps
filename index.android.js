@@ -11,15 +11,6 @@ let {
   Image
 } = React;
 
-
-/* Default properties */
-let DEFAULTS = {
-  center: { lat: 51.506423, lng: -0.119108 },
-  zoomLevel: 1,
-  markers: [],
-  zoomOnMarkers: false
-};
-
 /* RNGMAPS COMP */
 var gmaps = {
   name: 'RNGMaps',
@@ -45,7 +36,8 @@ class RNGMaps extends Component {
     super(props);
     this._event = null;
     this.state = {
-      zoomOnMarkers: false
+      zoomOnMarkers: false,
+      markers: []
     }
   }
 
@@ -53,18 +45,58 @@ class RNGMaps extends Component {
     this._event = DeviceEventEmitter.addListener('mapChange', (e: Event) => {
       this.props.onMapChange&&this.props.onMapChange(e);
     });
+
+    this._error = DeviceEventEmitter.addListener('mapError', (e: Event) => {
+      console.log(`[GMAP_ERROR]: ${e.message}`);
+      this.props.onMapError&&this.props.onMapError(e);
+    });
+
+    this.updateMarkers(this.props.markers);
   }
 
   componentWillUnmount () {
     this._event&&this._event.remove();
+    this._error&&this._error.remove();
   }
 
-  zoomOnMarkers () {
-    this.setState({ zoomOnMarkers: true })
+  zoomOnMarkers (bool) {
+    // HACK: Bleurgh, forcing the change on zoomOnMarkers.
+    this.setState({ zoomOnMarkers: null }, () => {
+      this.setState({ zoomOnMarkers: bool||true });
+    });
+  }
+
+  updateMarkers (markers) {
+    let newMarkers = [];
+    for (var i = 0; i < markers.length; i++) newMarkers.push(markers[i]);
+    this.setState({ markers: newMarkers });
+  }
+
+  _diffMarkers (markersOne, markersTwo) {
+    if(markersOne.length!==markersTwo.length) return true;
+    for (let i = 0; i < markersOne.length; i++) {
+      for (let prop in markersOne[i].coordinates) {
+        if (markersOne[i].coordinates.hasOwnProperty(prop)) {
+          if(markersOne[i].coordinates[prop] !== markersTwo[i].coordinates[prop]) return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  componentWillReceiveProps (nextProps) {
+    if(this._diffMarkers(nextProps.markers, this.state.markers)) {
+      this.updateMarkers(nextProps.markers);
+    }
   }
 
   render () {
-    return ( <MapView { ...this.props } zoomOnMarkers={ this.state.zoomOnMarkers } /> );
+    return ( <MapView
+      { ...this.props }
+      markers={ this.state.markers }
+      zoomOnMarkers={ this.state.zoomOnMarkers }
+      />
+    );
   }
 }
 

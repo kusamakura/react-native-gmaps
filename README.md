@@ -20,12 +20,23 @@ let RNGMap = require('react-native-gmaps');
     ] }
   zoomLevel={10}
   onMapChange={(e) => console.log(e)}
+  onMapError={(e) => console.log('Map error --> ', e)}
   center={ { lng: 0.1, lat: 51.0 } } />
 ```
 
 ##### onMapChange
 
 You will notice that you can pass a function to 'onMapChange'; this will be called after every time the map move - including when it initialises and zooms to it's initial point.
+
+##### onMapError
+
+Pass in a function to onMapError to respond to any errors thrown by gmaps. The only errors currently passed back are:
+
+- **Map is null** - `{ message: 'Map is null', type: 'map_null' }`
+  - You will get this error if you dont have Google Play APK installed.
+
+- **Map init error** - `{ message: 'Map initialize error', 'map_init_error' }`
+  - If an initialization error is caught then this will be passed.
 
 ### Methods
 
@@ -34,12 +45,16 @@ You will notice that you can pass a function to 'onMapChange'; this will be call
 
 ### Install
 
-#### Step 1 - Install the npm package
+#### Step 1 - Install Google Play APK
+
+Check [here](https://developers.google.com/android/guides/setup) && [here](http://stackoverflow.com/questions/20121883/how-to-install-google-play-services-in-a-genymotion-vm-with-no-drag-and-drop-su) for guidance.
+
+#### Step 2 - Install the npm package
 ```sh
 $ npm install react-native-gmaps --save
 ```
 
-#### Step 2 - Update Gradle Settings
+#### Step 3 - Update Gradle Settings
 
 ```gradle
 // file: android/settings.gradle
@@ -49,7 +64,7 @@ include ':react-native-gmaps', ':app'
 project(':react-native-gmaps').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-gmaps/android/app')
 ```
 
-#### Step 3 - Update app Gradle Build
+#### Step 4 - Update app Gradle Build
 
 ```gradle
 // file: android/app/build.gradle
@@ -61,7 +76,7 @@ dependencies {
 }
 ```
 
-#### Step 4 - Register React Package
+#### Step 5 - Register React Package
 
 ```java
 ...
@@ -92,7 +107,7 @@ public class MainActivity extends FragmentActivity implements DefaultHardwareBac
 
 ```
 
-#### Step 5 - Add Google Maps to your Project
+#### Step 6 - Add Google Maps to your Project
 
 Add this to your AndroidManifest file; make sure it goes at the bottom of the `<application>` tag.
 
