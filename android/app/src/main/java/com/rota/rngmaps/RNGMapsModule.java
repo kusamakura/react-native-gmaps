@@ -69,6 +69,7 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
 
           try {
               MapsInitializer.initialize(context.getApplicationContext());
+              map.setOnCameraChangeListener(getCameraChangeListener());
           } catch (Exception e) {
               e.printStackTrace();
               sendMapError("Map initialize error", "map_init_error");
