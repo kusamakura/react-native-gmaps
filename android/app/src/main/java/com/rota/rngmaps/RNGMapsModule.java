@@ -20,6 +20,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -64,7 +65,7 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
         if (map == null) {
           sendMapError("Map is null", "map_null");
         } else {
-          map.getUiSettings().setMyLocationButtonEnabled(false);
+          map.getUiSettings().setMyLocationButtonEnabled(true);
           map.setMyLocationEnabled(true);
 
           try {
@@ -116,12 +117,14 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
 
             if(props.hasKey(PROP_ZOOM_LEVEL)) {
                 int zoomLevel = props.getInt(PROP_ZOOM_LEVEL, 10);
+                Log.i("Maps", "Zoom: " + Integer.toString(props.getInt(PROP_ZOOM_LEVEL, 10)));
                 cameraUpdate = CameraUpdateFactory
                         .newLatLngZoom(
                                 new LatLng(lat, lng),
-                                props.getInt(PROP_ZOOM_LEVEL, 10)
+                                zoomLevel
                         );
             } else {
+                Log.i("Maps", "Default Zoom.");
                 cameraUpdate = CameraUpdateFactory.newLatLng(new LatLng(lat, lng));
             }
 
@@ -132,6 +135,17 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
             // ERROR!
             e.printStackTrace();
             return false;
+        }
+    }
+
+    public void moveCamera(Double lat, Double lng) {
+        try {
+            CameraUpdate cameraUpdate;
+            cameraUpdate = CameraUpdateFactory.newLatLng(new LatLng(lat, lng));
+            map.animateCamera(cameraUpdate);
+        } catch (Exception e) {
+            // ERROR!
+            e.printStackTrace();
         }
     }
 
@@ -158,6 +172,9 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
 
                     if(marker.hasKey("title")) {
                         options.title(marker.getString("title"));
+                    }
+                    if(marker.hasKey("color")) {
+                        options.icon(BitmapDescriptorFactory.defaultMarker((float) marker.getDouble("color")));
                     }
                     mapMarkers.add(map.addMarker(options));
 
@@ -202,4 +219,7 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
         }
 
     }
+
+
 }
+
