@@ -174,6 +174,13 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
                     if(marker.hasKey("color")) {
                         options.icon(BitmapDescriptorFactory.defaultMarker((float) marker.getDouble("color")));
                     }
+                    if(marker.hasKey("res")) {
+                        // Changing marker icon to use resource
+                        String varName = marker.getString("res");
+                        int resourceValue = getValueOfResource(varName);
+                        Log.i("GMaps", marker.toString()); //R.drawable.class. //getField("bock_green").
+                        options.icon(BitmapDescriptorFactory.fromResource(resourceValue));
+                    }
                     mapMarkers.add(map.addMarker(options));
 
                 } else break;
@@ -185,6 +192,19 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
             e.printStackTrace();
             return false;
         }
+    }
+
+    @SuppressWarnings("rawtypes")
+    public static int getValueOfResource(String lookingForValue)
+        throws Exception {
+            Object clazz = new R.drawable();
+            Class clazzType = clazz.getClass().getField(lookingForValue).getType();
+            int value = 0;
+            if (clazzType.toString().equals("int")) {
+                value =  clazz.getClass().getField(lookingForValue).getInt(clazz);
+            }
+            clazz = null;
+        return value;
     }
 
     private Boolean zoomOnMarkers () {
