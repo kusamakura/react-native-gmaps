@@ -62,31 +62,31 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
         map = mView.getMap();
 
         if (map == null) {
-          sendMapError("Map is null", "map_null");
+            sendMapError("Map is null", "map_null");
         } else {
-          map.getUiSettings().setMyLocationButtonEnabled(false);
-          map.setMyLocationEnabled(true);
+            map.getUiSettings().setMyLocationButtonEnabled(false);
+            map.setMyLocationEnabled(true);
 
-          try {
-              MapsInitializer.initialize(context.getApplicationContext());
-              map.setOnCameraChangeListener(getCameraChangeListener());
-          } catch (Exception e) {
-              e.printStackTrace();
-              sendMapError("Map initialize error", "map_init_error");
-          }
+            try {
+                MapsInitializer.initialize(context.getApplicationContext());
+                map.setOnCameraChangeListener(getCameraChangeListener());
+            } catch (Exception e) {
+                e.printStackTrace();
+                sendMapError("Map initialize error", "map_init_error");
+            }
         }
 
         return mView;
     }
 
-    private void sendMapError (String message, String type) {
-      WritableMap error = Arguments.createMap();
-      error.putString("message", message);
-      error.putString("type", type);
+    private void sendMapError(String message, String type) {
+        WritableMap error = Arguments.createMap();
+        error.putString("message", message);
+        error.putString("type", type);
 
-      reactContext
-              .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-              .emit("mapError", error);
+        reactContext
+                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                .emit("mapError", error);
     }
 
     private GoogleMap.OnCameraChangeListener getCameraChangeListener() {
@@ -108,19 +108,15 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
         };
     }
 
-    private Boolean updateCenter (CatalystStylesDiffMap props) {
+    private Boolean updateCenter(CatalystStylesDiffMap props) {
         try {
             CameraUpdate cameraUpdate;
             Double lng = props.getMap(PROP_CENTER).getDouble("lng");
             Double lat = props.getMap(PROP_CENTER).getDouble("lat");
 
-            if(props.hasKey(PROP_ZOOM_LEVEL)) {
+            if (props.hasKey(PROP_ZOOM_LEVEL)) {
                 int zoomLevel = props.getInt(PROP_ZOOM_LEVEL, 10);
-                cameraUpdate = CameraUpdateFactory
-                        .newLatLngZoom(
-                                new LatLng(lat, lng),
-                                props.getInt(PROP_ZOOM_LEVEL, 10)
-                        );
+                cameraUpdate = CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lng), zoomLevel);
             } else {
                 cameraUpdate = CameraUpdateFactory.newLatLng(new LatLng(lat, lng));
             }
@@ -135,11 +131,11 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
         }
     }
 
-    private Boolean updateMarkers (CatalystStylesDiffMap props) {
+    private Boolean updateMarkers(CatalystStylesDiffMap props) {
         try {
 
             // First clear all markers from the map
-            for (Marker marker: mapMarkers) {
+            for (Marker marker : mapMarkers) {
                 marker.remove();
             }
             mapMarkers.clear();
@@ -148,7 +144,7 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
             for (int i = 0; i < props.getArray(PROP_MARKERS).size(); i++) {
                 MarkerOptions options = new MarkerOptions();
                 ReadableMap marker = props.getArray(PROP_MARKERS).getMap(i);
-                if(marker.hasKey("coordinates")) {
+                if (marker.hasKey("coordinates")) {
 
                     options.position(new LatLng(
                                     marker.getMap("coordinates").getDouble("lat"),
@@ -156,14 +152,13 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
                             )
                     );
 
-                    if(marker.hasKey("title")) {
+                    if (marker.hasKey("title")) {
                         options.title(marker.getString("title"));
                     }
                     mapMarkers.add(map.addMarker(options));
 
                 } else break;
             }
-
 
             return true;
         } catch (Exception e) {
@@ -172,7 +167,7 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
         }
     }
 
-    private Boolean zoomOnMarkers () {
+    private Boolean zoomOnMarkers() {
         try {
             int padding = 150;
 
@@ -197,8 +192,8 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
         if (props.hasKey(PROP_CENTER)) updateCenter(props);
         if (props.hasKey(PROP_ZOOM_LEVEL)) updateCenter(props);
         if (props.hasKey(PROP_MARKERS)) updateMarkers(props);
-        if (props.hasKey(PROP_ZOOM_ON_MARKERS)&&props.getBoolean(PROP_ZOOM_ON_MARKERS, false)) {
-          zoomOnMarkers();
+        if (props.hasKey(PROP_ZOOM_ON_MARKERS) && props.getBoolean(PROP_ZOOM_ON_MARKERS, false)) {
+            zoomOnMarkers();
         }
 
     }
