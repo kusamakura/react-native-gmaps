@@ -1,12 +1,10 @@
 
 package com.rota.rngmaps;
 
-import android.util.Log;
-
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.ReactContext;
-import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
@@ -15,18 +13,10 @@ import com.facebook.react.uimanager.SimpleViewManager;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.UIProp;
 import com.google.android.gms.maps.*;
-import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.*;
 
 import java.util.ArrayList;
-import java.util.Map;
 
-/**
- * Created by Henry on 08/10/2015.
- */
 
 public class RNGMapsModule extends SimpleViewManager<MapView> {
     public static final String REACT_CLASS = "RNGMaps";
@@ -160,6 +150,16 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
                         options.snippet(marker.getString("snippet"));
                     }
 
+                    if (marker.hasKey("icon")) {
+                        ReadableMap icon = marker.getMap("icon");
+                        int resId = getResourceDrawableId(icon.getString("uri"));
+                        Bitmap image = BitmapFactory.decodeResource(reactContext.getResources(), resId);
+
+                        options.icon(BitmapDescriptorFactory.fromBitmap(
+                                Bitmap.createScaledBitmap(image, icon.getInt("width"), icon.getInt("height"), true)
+                        ));
+                    }
+
                     mapMarkers.add(map.addMarker(options));
 
                 } else break;
@@ -201,5 +201,13 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
             zoomOnMarkers();
         }
 
+    }
+
+    private int getResourceDrawableId(String name) {
+        return reactContext.getResources().getIdentifier(
+                name.toLowerCase().replace("-", "_"),
+                "drawable",
+                reactContext.getPackageName()
+        );
     }
 }
