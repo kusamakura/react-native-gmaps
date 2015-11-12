@@ -49,6 +49,8 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
     @UIProp(UIProp.Type.BOOLEAN)
     public static final String PROP_ZOOM_ON_MARKERS = "zoomOnMarkers";
 
+    protected Integer mlastZoom;
+
     @Override
     public String getName() {
         return REACT_CLASS;
@@ -100,7 +102,7 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
                 latLng.putDouble("lng", position.target.longitude);
 
                 params.putMap("latLng", latLng);
-                params.putDouble("zoomLevel", position.zoom);
+                params.putInt("zoomLevel",(int) position.zoom);
 
                 reactContext
                         .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
@@ -117,6 +119,7 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
 
             if(props.hasKey(PROP_ZOOM_LEVEL)) {
                 int zoomLevel = props.getInt(PROP_ZOOM_LEVEL, 10);
+                mlastZoom = zoomLevel;
                 Log.i("Maps", "Zoom: " + Integer.toString(props.getInt(PROP_ZOOM_LEVEL, 10)));
                 cameraUpdate = CameraUpdateFactory
                         .newLatLngZoom(
@@ -125,8 +128,14 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
                         );
             } else {
                 Log.i("Maps", "Default Zoom.");
-                cameraUpdate = CameraUpdateFactory.newLatLng(new LatLng(lat, lng));
+                //cameraUpdate = CameraUpdateFactory.newLatLng(new LatLng(lat, lng));
+                cameraUpdate = CameraUpdateFactory
+                        .newLatLngZoom(
+                                new LatLng(lat, lng),
+                                mlastZoom
+                        );
             }
+
 
             map.animateCamera(cameraUpdate);
 
@@ -135,17 +144,6 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
             // ERROR!
             e.printStackTrace();
             return false;
-        }
-    }
-
-    public void moveCamera(Double lat, Double lng) {
-        try {
-            CameraUpdate cameraUpdate;
-            cameraUpdate = CameraUpdateFactory.newLatLng(new LatLng(lat, lng));
-            map.animateCamera(cameraUpdate);
-        } catch (Exception e) {
-            // ERROR!
-            e.printStackTrace();
         }
     }
 
@@ -210,6 +208,7 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
 
     @Override
     public void updateView(MapView view, CatalystStylesDiffMap props) {
+        Log.i("GMaps", props.toString());
         super.updateView(view, props);
         if (props.hasKey(PROP_CENTER)) updateCenter(props);
         if (props.hasKey(PROP_ZOOM_LEVEL)) updateCenter(props);
