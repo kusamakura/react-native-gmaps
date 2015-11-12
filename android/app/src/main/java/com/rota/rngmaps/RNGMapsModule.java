@@ -155,6 +155,11 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
                     if (marker.hasKey("title")) {
                         options.title(marker.getString("title"));
                     }
+
+                    if (marker.hasKey("snippet")) {
+                        options.snippet(marker.getString("snippet"));
+                    }
+
                     mapMarkers.add(map.addMarker(options));
 
                 } else break;
