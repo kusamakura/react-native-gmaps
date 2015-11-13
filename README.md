@@ -24,6 +24,10 @@ let RNGMap = require('react-native-gmaps');
            * Able to use "my_icon" or {uri: 'my_icon', width: 100, height: 100 } here as well
            */
           icon = require('image!my_icon')
+          /*
+           * color is only working with default icon
+           */
+          color: 120,
         }
     ] }
   zoomLevel={10}
