@@ -16,7 +16,15 @@ let RNGMap = require('react-native-gmaps');
   style={ { height: 500, width: 500 } }
   markers={ [
         { coordinates: {lng: 0.1, lat: 51.0} },
-        { coordinates: {lng: -0.1, lat: 51.0}, title: "Click marker to see this title!" }
+        { 
+          coordinates: {lng: -0.1, lat: 51.0}, 
+          title: "Click marker to see this title!"
+          snippet: "Subtitle"
+          /*
+           * Able to use "my_icon" or {uri: 'my_icon', width: 100, height: 100 } here as well
+           */
+          icon = require('image!my_icon')
+        }
     ] }
   zoomLevel={10}
   onMapChange={(e) => console.log(e)}
