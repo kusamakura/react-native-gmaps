@@ -6,9 +6,7 @@ import android.graphics.BitmapFactory;
 import android.util.Log;
 
 import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.ReactContext;
-import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.WritableMap;
@@ -18,12 +16,7 @@ import com.facebook.react.uimanager.SimpleViewManager;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.UIProp;
 import com.google.android.gms.maps.*;
-import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.*;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -131,7 +124,11 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
                         );
             } else {
                 Log.i("Maps", "Default Zoom.");
-                //cameraUpdate = CameraUpdateFactory.newLatLng(new LatLng(lat, lng));
+                /*
+                 * Changed from cameraUpdate = CameraUpdateFactory.newLatLng(new LatLng(lat, lng));
+                 * as it gave me "zoom" Bugs (defaulted to zoom factor 2) as soon as I put in
+                 * "real" LNG and LAT values...
+                 */
                 cameraUpdate = CameraUpdateFactory
                         .newLatLngZoom(
                                 new LatLng(lat, lng),
