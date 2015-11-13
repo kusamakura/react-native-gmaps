@@ -1,6 +1,8 @@
 
 package com.rota.rngmaps;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.util.Log;
 
 import com.facebook.react.bridge.Arguments;
@@ -8,6 +10,7 @@ import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.uimanager.CatalystStylesDiffMap;
@@ -174,12 +177,33 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
                     if(marker.hasKey("color")) {
                         options.icon(BitmapDescriptorFactory.defaultMarker((float) marker.getDouble("color")));
                     }
-                    if(marker.hasKey("res")) {
-                        // Changing marker icon to use resource
-                        String varName = marker.getString("res");
-                        int resourceValue = getValueOfResource(varName);
-                        Log.i("GMaps", marker.toString()); //R.drawable.class. //getField("bock_green").
-                        options.icon(BitmapDescriptorFactory.fromResource(resourceValue));
+		    if (marker.hasKey("snippet")) {
+                        options.snippet(marker.getString("snippet"));
+                    }
+                    if(marker.hasKey("icon")) {
+                        String varName = "";
+                        ReadableType iconType = marker.getType("icon");
+                        if (iconType.compareTo(ReadableType.Map) >= 0) {
+                            ReadableMap icon = marker.getMap("icon");
+                            try {
+                                int resId = getResourceDrawableId(icon.getString("uri"));
+                                Bitmap image = BitmapFactory.decodeResource(reactContext.getResources(), resId);
+
+                                options.icon(BitmapDescriptorFactory.fromBitmap(
+                                        Bitmap.createScaledBitmap(image, icon.getInt("width"), icon.getInt("height"), true)
+                                ));
+                            } catch (Exception e) {
+                                varName = icon.getString("uri");
+                            }
+                        } else if (iconType.compareTo(ReadableType.String) >= 0) {
+                            varName = marker.getString("icon");
+                        }
+                        if (!varName.equals("")) {
+                            // Changing marker icon to use resource
+                            int resourceValue = getValueOfResource(varName);
+                            Log.i("GMaps", varName + marker.toString());
+                            options.icon(BitmapDescriptorFactory.fromResource(resourceValue));
+                        }
                     }
                     mapMarkers.add(map.addMarker(options));
 
@@ -237,6 +261,14 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
           zoomOnMarkers();
         }
 
+    }
+
+    private int getResourceDrawableId(String name) {
+        return reactContext.getResources().getIdentifier(
+                name.toLowerCase().replace("-", "_"),
+                "drawable",
+                reactContext.getPackageName()
+        );
     }
 
 
