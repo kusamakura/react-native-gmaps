@@ -27,7 +27,8 @@ var gmaps = {
     translateY: React.PropTypes.number,
     rotation: React.PropTypes.number,
   },
-  colors: {
+};
+var colors = {
     HUE_AZURE   : 210.0,
     HUE_BLUE    : 240.0,
     HUE_CYAN    : 180.0,
@@ -38,8 +39,7 @@ var gmaps = {
     HUE_ROSE    : 330.0,
     HUE_VIOLET  : 270.0,
     HUE_YELLOW  : 60.0,
-  },
-};
+  };
 
 let MapView = requireNativeComponent('RNGMaps', gmaps);
 
