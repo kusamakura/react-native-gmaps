@@ -60,6 +60,7 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
             try {
                 MapsInitializer.initialize(context.getApplicationContext());
                 map.setOnCameraChangeListener(getCameraChangeListener());
+                map.setOnMarkerClickListener(getMarkerClickListener());
             } catch (Exception e) {
                 e.printStackTrace();
                 sendMapError("Map initialize error", "map_init_error");
@@ -94,6 +95,22 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
                 reactContext
                         .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
                         .emit("mapChange", params);
+            }
+        };
+    }
+
+    private GoogleMap.OnMarkerClickListener getMarkerClickListener() {
+        return new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                WritableMap event = Arguments.createMap();
+                event.putString("id", marker.getId());
+
+                reactContext
+                        .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                        .emit("markerClick", event);
+
+                return false;
             }
         };
     }
