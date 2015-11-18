@@ -28,6 +28,8 @@ import java.util.Map;
 
 public class RNGMapsModule extends SimpleViewManager<MapView> {
     public static final String REACT_CLASS = "RNGMaps";
+    // Unique Name for Log TAG
+    public static final String TAG = RNGMapsModule.class.getSimpleName();
 
     private MapView mView;
     private GoogleMap map;
@@ -117,14 +119,14 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
             if(props.hasKey(PROP_ZOOM_LEVEL)) {
                 int zoomLevel = props.getInt(PROP_ZOOM_LEVEL, 10);
                 mlastZoom = zoomLevel;
-                Log.i("Maps", "Zoom: " + Integer.toString(props.getInt(PROP_ZOOM_LEVEL, 10)));
+                Log.i(TAG, "Zoom: " + Integer.toString(props.getInt(PROP_ZOOM_LEVEL, 10)));
                 cameraUpdate = CameraUpdateFactory
                         .newLatLngZoom(
                                 new LatLng(lat, lng),
                                 zoomLevel
                         );
             } else {
-                Log.i("Maps", "Default Zoom.");
+                Log.i(TAG, "Default Zoom.");
                 /*
                  * Changed from cameraUpdate = CameraUpdateFactory.newLatLng(new LatLng(lat, lng));
                  * as it gave me "zoom" Bugs (defaulted to zoom factor 2) as soon as I put in
@@ -199,7 +201,7 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
                         if (!varName.equals("")) {
                             // Changing marker icon to use resource
                             int resourceValue = getResourceDrawableId(varName);
-                            Log.i("GMaps", varName + marker.toString());
+                            Log.i(TAG, varName + marker.toString());
                             options.icon(BitmapDescriptorFactory.fromResource(resourceValue));
                         }
                     }
@@ -237,7 +239,7 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
 
     @Override
     public void updateView(MapView view, CatalystStylesDiffMap props) {
-        Log.i("GMaps", props.toString());
+        Log.i(TAG, props.toString());
         super.updateView(view, props);
         if (props.hasKey(PROP_CENTER)) updateCenter(props);
         if (props.hasKey(PROP_ZOOM_LEVEL)) updateCenter(props);
@@ -256,7 +258,7 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
                     reactContext.getPackageName()
             );
         } catch (Exception e) {
-            Log.e("RNGMaps", "Failure to get drawable id.", e);
+            Log.e(TAG, "Failure to get drawable id.", e);
             return 0;
         }
     }
