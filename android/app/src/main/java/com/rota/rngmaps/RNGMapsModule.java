@@ -18,6 +18,7 @@ import com.facebook.react.uimanager.UIProp;
 import com.google.android.gms.maps.*;
 import com.google.android.gms.maps.model.*;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -61,31 +62,31 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
         map = mView.getMap();
 
         if (map == null) {
-          sendMapError("Map is null", "map_null");
+            sendMapError("Map is null", "map_null");
         } else {
-          map.getUiSettings().setMyLocationButtonEnabled(true);
-          map.setMyLocationEnabled(true);
+            map.getUiSettings().setMyLocationButtonEnabled(true);
+            map.setMyLocationEnabled(true);
 
-          try {
-              MapsInitializer.initialize(context.getApplicationContext());
-              map.setOnCameraChangeListener(getCameraChangeListener());
-          } catch (Exception e) {
-              e.printStackTrace();
-              sendMapError("Map initialize error", "map_init_error");
-          }
+            try {
+                MapsInitializer.initialize(context.getApplicationContext());
+                map.setOnCameraChangeListener(getCameraChangeListener());
+            } catch (Exception e) {
+                e.printStackTrace();
+                sendMapError("Map initialize error", "map_init_error");
+            }
         }
 
         return mView;
     }
 
     private void sendMapError (String message, String type) {
-      WritableMap error = Arguments.createMap();
-      error.putString("message", message);
-      error.putString("type", type);
+        WritableMap error = Arguments.createMap();
+        error.putString("message", message);
+        error.putString("type", type);
 
-      reactContext
-              .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-              .emit("mapError", error);
+        reactContext
+                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                .emit("mapError", error);
     }
 
     private GoogleMap.OnCameraChangeListener getCameraChangeListener() {
@@ -174,7 +175,7 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
                     if(marker.hasKey("color")) {
                         options.icon(BitmapDescriptorFactory.defaultMarker((float) marker.getDouble("color")));
                     }
-		    if (marker.hasKey("snippet")) {
+                    if (marker.hasKey("snippet")) {
                         options.snippet(marker.getString("snippet"));
                     }
                     if(marker.hasKey("icon")) {
@@ -197,7 +198,7 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
                         }
                         if (!varName.equals("")) {
                             // Changing marker icon to use resource
-                            int resourceValue = getValueOfResource(varName);
+                            int resourceValue = getResourceDrawableId(varName);
                             Log.i("GMaps", varName + marker.toString());
                             options.icon(BitmapDescriptorFactory.fromResource(resourceValue));
                         }
@@ -213,19 +214,6 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
             e.printStackTrace();
             return false;
         }
-    }
-
-    @SuppressWarnings("rawtypes")
-    public static int getValueOfResource(String lookingForValue)
-        throws Exception {
-            Object clazz = new R.drawable();
-            Class clazzType = clazz.getClass().getField(lookingForValue).getType();
-            int value = 0;
-            if (clazzType.toString().equals("int")) {
-                value =  clazz.getClass().getField(lookingForValue).getInt(clazz);
-            }
-            clazz = null;
-        return value;
     }
 
     private Boolean zoomOnMarkers () {
@@ -255,17 +243,22 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
         if (props.hasKey(PROP_ZOOM_LEVEL)) updateCenter(props);
         if (props.hasKey(PROP_MARKERS)) updateMarkers(props);
         if (props.hasKey(PROP_ZOOM_ON_MARKERS)&&props.getBoolean(PROP_ZOOM_ON_MARKERS, false)) {
-          zoomOnMarkers();
+            zoomOnMarkers();
         }
 
     }
 
     private int getResourceDrawableId(String name) {
-        return reactContext.getResources().getIdentifier(
-                name.toLowerCase().replace("-", "_"),
-                "drawable",
-                reactContext.getPackageName()
-        );
+        try {
+            return reactContext.getResources().getIdentifier(
+                    name.toLowerCase().replace("-", "_"),
+                    "drawable",
+                    reactContext.getPackageName()
+            );
+        } catch (Exception e) {
+            Log.e("RNGMaps", "Failure to get drawable id.", e);
+            return 0;
+        }
     }
 
 
