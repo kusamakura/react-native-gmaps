@@ -34,30 +34,45 @@ let MapView = requireNativeComponent('RNGMaps', gmaps);
 class RNGMaps extends Component {
   constructor (props) {
     super(props);
-    this._event = null;
+    
+    this._listeners = {
+      mapError: null,
+      mapChange: null,
+      markerClick: null,
+    };
+
+    // Look up markers by id
+    this._markersLookup = {};
     this.state = {
       zoomOnMarkers: false,
       markers: []
     }
   }
 
-  componentDidMount () {
-    this._event = DeviceEventEmitter.addListener('mapChange', (e: Event) => {
-      this.props.onMapChange&&this.props.onMapChange(e);
+componentDidMount () {
+    this._listeners.mapError = DeviceEventEmitter.addListener('mapError', (e: Event) => {
+      console.log(`[GMAP_ERROR]: ${e.message}`);
+      this.props.onMapError && this.props.onMapError(e);
     });
 
-    this._error = DeviceEventEmitter.addListener('mapError', (e: Event) => {
-      console.log(`[GMAP_ERROR]: ${e.message}`);
-      this.props.onMapError&&this.props.onMapError(e);
+    this._listeners.mapChange = DeviceEventEmitter.addListener('mapChange', (e: Event) => {
+      this.props.onMapChange && this.props.onMapChange(e);
+    });
+
+    this._listeners.markerClick = DeviceEventEmitter.addListener('markerClick', (e: Event) => {
+      let marker = this._markersLookup[e.id];
+      marker && this.props.onMarkerClick && this.props.onMarkerClick(marker);
     });
 
     this.updateMarkers(this.props.markers);
   }
 
   componentWillUnmount () {
-    this._event&&this._event.remove();
-    this._error&&this._error.remove();
+    this._listeners.mapError && this._listeners.mapError.remove();
+    this._listeners.mapChange && this._listeners.mapChange.remove();
+    this._listeners.markerClick && this._listeners.markerClick.remove();
   }
+
 
   zoomOnMarkers (bool) {
     // HACK: Bleurgh, forcing the change on zoomOnMarkers.
@@ -68,7 +83,11 @@ class RNGMaps extends Component {
 
   updateMarkers (markers) {
     let newMarkers = [];
-    for (var i = 0; i < markers.length; i++) newMarkers.push(markers[i]);
+    for (var i = 0; i < markers.length; i++) {
+      let marker = markers[i];
+      this._markersLookup[marker.id] = marker;
+      newMarkers.push(marker);
+    }
     this.setState({ markers: newMarkers });
   }
 
