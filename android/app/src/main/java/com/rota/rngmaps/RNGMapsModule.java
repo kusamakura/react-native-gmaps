@@ -16,7 +16,7 @@ import com.google.android.gms.maps.*;
 import com.google.android.gms.maps.model.*;
 
 import java.util.ArrayList;
-
+import java.util.HashMap;
 
 public class RNGMapsModule extends SimpleViewManager<MapView> {
     public static final String REACT_CLASS = "RNGMaps";
@@ -25,6 +25,7 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
     private GoogleMap map;
     private ReactContext reactContext;
     private ArrayList<Marker> mapMarkers = new ArrayList<Marker>();
+    private HashMap<String, String> markerLookup = new HashMap<String, String>();
 
     @UIProp(UIProp.Type.MAP)
     public static final String PROP_CENTER = "center";
@@ -103,12 +104,16 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
         return new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker) {
-                WritableMap event = Arguments.createMap();
-                event.putString("id", marker.getId());
+                String id = marker.getId();
 
-                reactContext
-                        .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-                        .emit("markerClick", event);
+                if (markerLookup.containsKey(id)) {
+                    WritableMap event = Arguments.createMap();
+                    event.putString("id", markerLookup.get(id));
+
+                    reactContext
+                            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                            .emit("markerClick", event);
+                }
 
                 return false;
             }
@@ -146,29 +151,31 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
                 marker.remove();
             }
             mapMarkers.clear();
+            markerLookup.clear();
 
             // All markers to map
             for (int i = 0; i < props.getArray(PROP_MARKERS).size(); i++) {
                 MarkerOptions options = new MarkerOptions();
-                ReadableMap marker = props.getArray(PROP_MARKERS).getMap(i);
-                if (marker.hasKey("coordinates")) {
+                ReadableMap markerJson = props.getArray(PROP_MARKERS).getMap(i);
+
+                if (markerJson.hasKey("coordinates")) {
 
                     options.position(new LatLng(
-                                    marker.getMap("coordinates").getDouble("lat"),
-                                    marker.getMap("coordinates").getDouble("lng")
+                                    markerJson.getMap("coordinates").getDouble("lat"),
+                                    markerJson.getMap("coordinates").getDouble("lng")
                             )
                     );
 
-                    if (marker.hasKey("title")) {
-                        options.title(marker.getString("title"));
+                    if (markerJson.hasKey("title")) {
+                        options.title(markerJson.getString("title"));
                     }
 
-                    if (marker.hasKey("snippet")) {
-                        options.snippet(marker.getString("snippet"));
+                    if (markerJson.hasKey("snippet")) {
+                        options.snippet(markerJson.getString("snippet"));
                     }
 
-                    if (marker.hasKey("icon")) {
-                        ReadableMap icon = marker.getMap("icon");
+                    if (markerJson.hasKey("icon")) {
+                        ReadableMap icon = markerJson.getMap("icon");
                         int resId = getResourceDrawableId(icon.getString("uri"));
                         Bitmap image = BitmapFactory.decodeResource(reactContext.getResources(), resId);
 
@@ -177,7 +184,13 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
                         ));
                     }
 
-                    mapMarkers.add(map.addMarker(options));
+                    Marker marker = map.addMarker(options);
+
+                    if (markerJson.hasKey("id")) {
+                        markerLookup.put(marker.getId(), markerJson.getString("id"));
+                    }
+
+                    mapMarkers.add(marker);
 
                 } else break;
             }
