@@ -192,7 +192,7 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
                 Double lng = properties.getMap(PROP_CENTER).getDouble("lng");
                 Double lat = properties.getMap(PROP_CENTER).getDouble("lat");
 
-                if (properties.hasKey(PROP_ZOOM_LEVEL)) {
+                if (properties.hasKey(PROP_ZOOM_LEVEL) && mlastZoom == 10) {
                     int zoomLevel = properties.getInt(PROP_ZOOM_LEVEL);
                     mlastZoom = zoomLevel;
                     Log.i(TAG, "Zoom: " + Integer.toString(properties.getInt(PROP_ZOOM_LEVEL)));
