@@ -176,42 +176,45 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
     }
 
     private Boolean updateCenter () {
-        try {
-            CameraUpdate cameraUpdate;
-            Double lng = properties.getMap(PROP_CENTER).getDouble("lng");
-            Double lat = properties.getMap(PROP_CENTER).getDouble("lat");
+        if (properties.hasKey(PROP_CENTER)) {
+            try {
+                CameraUpdate cameraUpdate;
 
-            if(properties.hasKey(PROP_ZOOM_LEVEL)) {
-                int zoomLevel = properties.getInt(PROP_ZOOM_LEVEL);
-                mlastZoom = zoomLevel;
-                Log.i(TAG, "Zoom: " + Integer.toString(properties.getInt(PROP_ZOOM_LEVEL)));
-                cameraUpdate = CameraUpdateFactory
-                        .newLatLngZoom(
-                                new LatLng(lat, lng),
-                                zoomLevel
-                        );
-            } else {
-                Log.i(TAG, "Default Zoom.");
+                Double lng = properties.getMap(PROP_CENTER).getDouble("lng");
+                Double lat = properties.getMap(PROP_CENTER).getDouble("lat");
+
+                if (properties.hasKey(PROP_ZOOM_LEVEL)) {
+                    int zoomLevel = properties.getInt(PROP_ZOOM_LEVEL);
+                    mlastZoom = zoomLevel;
+                    Log.i(TAG, "Zoom: " + Integer.toString(properties.getInt(PROP_ZOOM_LEVEL)));
+                    cameraUpdate = CameraUpdateFactory
+                            .newLatLngZoom(
+                                    new LatLng(lat, lng),
+                                    zoomLevel
+                            );
+                } else {
+                    Log.i(TAG, "Default Zoom.");
                 /*
                  * Changed from cameraUpdate = CameraUpdateFactory.newLatLng(new LatLng(lat, lng));
                  * as it gave me "zoom" Bugs (defaulted to zoom factor 2) as soon as I put in
                  * "real" LNG and LAT values...
                  */
-                cameraUpdate = CameraUpdateFactory
-                        .newLatLngZoom(
-                                new LatLng(lat, lng),
-                                mlastZoom
-                        );
+                    cameraUpdate = CameraUpdateFactory
+                            .newLatLngZoom(
+                                    new LatLng(lat, lng),
+                                    mlastZoom
+                            );
+                }
+
+
+                map.animateCamera(cameraUpdate);
+
+                return true;
+            } catch (Exception e) {
+                // ERROR!
+                e.printStackTrace();
+                return false;
             }
-
-
-            map.animateCamera(cameraUpdate);
-
-            return true;
-        } catch (Exception e) {
-            // ERROR!
-            e.printStackTrace();
-            return false;
         }
     }
 
