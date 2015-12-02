@@ -123,7 +123,7 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
                     public boolean onMyLocationButtonClick() {
                         CameraPosition position = map.getCameraPosition();
                         mlastZoom = (int) position.zoom;
-                        return true;
+                        return false;
                     }
                 });
             } catch (Exception e) {
