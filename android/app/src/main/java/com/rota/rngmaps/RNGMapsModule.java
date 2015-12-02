@@ -117,6 +117,15 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
                 MapsInitializer.initialize(context.getApplicationContext());
                 map.setOnCameraChangeListener(getCameraChangeListener());
                 map.setOnMarkerClickListener(getMarkerClickListener());
+                //add location button click listener
+                map.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
+                    @Override
+                    public boolean onMyLocationButtonClick() {
+                        CameraPosition position = map.getCameraPosition();
+                        mlastZoom = (int) position.zoom;
+                        return true;
+                    }
+                });
             } catch (Exception e) {
                 e.printStackTrace();
                 sendMapError("Map initialize error", "map_init_error");
@@ -147,7 +156,6 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
 
                 params.putMap("latLng", latLng);
                 params.putInt("zoomLevel",(int) position.zoom);
-                mlastZoom = (int) position.zoom;
 
                 reactContext
                         .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
