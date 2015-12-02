@@ -3,23 +3,29 @@ package com.rota.rngmaps;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import javax.annotation.Nullable;
 import android.util.Log;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactContext;
+import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableType;
+import com.facebook.react.bridge.WritableArray;
+import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.uimanager.CatalystStylesDiffMap;
 import com.facebook.react.uimanager.SimpleViewManager;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.UIProp;
+import com.facebook.react.uimanager.ReactProp;
 import com.google.android.gms.maps.*;
 import com.google.android.gms.maps.model.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 
 /**
  * Created by Henry on 08/10/2015.
@@ -35,20 +41,58 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
     private ReactContext reactContext;
     private ArrayList<Marker> mapMarkers = new ArrayList<Marker>();
     private HashMap<String, String> markerLookup = new HashMap<String, String>();
+    private WritableMap properties = Arguments.createMap();
 
-    @UIProp(UIProp.Type.MAP)
+    public static final String[] markerProps = {
+      "title",
+      "coordinates",
+      "color",
+      "snippet",
+      "icon",
+      "id"
+    };
+
     public static final String PROP_CENTER = "center";
-
-    @UIProp(UIProp.Type.NUMBER)
     public static final String PROP_ZOOM_LEVEL = "zoomLevel";
-
-    @UIProp(UIProp.Type.ARRAY)
     public static final String PROP_MARKERS = "markers";
-
-    @UIProp(UIProp.Type.BOOLEAN)
     public static final String PROP_ZOOM_ON_MARKERS = "zoomOnMarkers";
 
-    protected Integer mlastZoom;
+    @ReactProp(name = PROP_CENTER)
+    public void setPropCenter(MapView view, @Nullable ReadableMap center) {
+        if (center != null) {
+            WritableMap centerLatLng = Arguments.createMap();
+            WritableMap centerMap = Arguments.createMap();
+            centerLatLng.putDouble("lat", center.getDouble("lat"));
+            centerLatLng.putDouble("lng", center.getDouble("lng"));
+
+            centerMap.putMap("center", centerLatLng);
+            properties.merge(centerMap);
+            updateCenter();
+        }
+    }
+
+    @ReactProp(name = PROP_ZOOM_LEVEL, defaultInt = 10)
+    public void setPropZoomLevel(MapView view, int zoomLevel) {
+        properties.putInt(PROP_ZOOM_LEVEL, zoomLevel);
+        updateCenter();
+    }
+
+    @ReactProp(name = PROP_MARKERS)
+    public void setPropMarkers(MapView view, @Nullable ReadableArray markersArray) {
+        if (markersArray != null) {
+            updateMarkers(markersArray);
+        }
+    }
+
+    @ReactProp(name = PROP_ZOOM_ON_MARKERS, defaultBoolean = false)
+    public void setPropZoomOnMarkers(MapView view, Boolean shallZoomOnMarkers) {
+        properties.putBoolean(PROP_ZOOM_ON_MARKERS, shallZoomOnMarkers);
+        if (shallZoomOnMarkers) {
+            zoomOnMarkers();
+        }
+    }
+
+    protected int mlastZoom = 10;
 
     @Override
     public String getName() {
@@ -56,7 +100,7 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
     }
 
     @Override
-    protected MapView createViewInstance(ThemedReactContext context) {
+    public MapView createViewInstance(ThemedReactContext context) {
         reactContext = context;
         mView = new MapView(context);
         mView.onCreate(null);
@@ -131,16 +175,16 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
         };
     }
 
-    private Boolean updateCenter (CatalystStylesDiffMap props) {
+    private Boolean updateCenter () {
         try {
             CameraUpdate cameraUpdate;
-            Double lng = props.getMap(PROP_CENTER).getDouble("lng");
-            Double lat = props.getMap(PROP_CENTER).getDouble("lat");
+            Double lng = properties.getMap(PROP_CENTER).getDouble("lng");
+            Double lat = properties.getMap(PROP_CENTER).getDouble("lat");
 
-            if(props.hasKey(PROP_ZOOM_LEVEL)) {
-                int zoomLevel = props.getInt(PROP_ZOOM_LEVEL, 10);
+            if(properties.hasKey(PROP_ZOOM_LEVEL)) {
+                int zoomLevel = properties.getInt(PROP_ZOOM_LEVEL);
                 mlastZoom = zoomLevel;
-                Log.i(TAG, "Zoom: " + Integer.toString(props.getInt(PROP_ZOOM_LEVEL, 10)));
+                Log.i(TAG, "Zoom: " + Integer.toString(properties.getInt(PROP_ZOOM_LEVEL)));
                 cameraUpdate = CameraUpdateFactory
                         .newLatLngZoom(
                                 new LatLng(lat, lng),
@@ -171,7 +215,7 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
         }
     }
 
-    private Boolean updateMarkers (CatalystStylesDiffMap props) {
+    private Boolean updateMarkers (ReadableArray markerArray) {
         try {
 
             // First clear all markers from the map
@@ -182,9 +226,9 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
             markerLookup.clear();
 
             // All markers to map
-            for (int i = 0; i < props.getArray(PROP_MARKERS).size(); i++) {
+            for (int i = 0; i < markerArray.size(); i++) {
                 MarkerOptions options = new MarkerOptions();
-                ReadableMap markerJson = props.getArray(PROP_MARKERS).getMap(i);
+                ReadableMap markerJson = markerArray.getMap(i);
                 if(markerJson.hasKey("coordinates")) {
 
                     options.position(new LatLng(
@@ -266,19 +310,6 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
         }
     }
 
-    @Override
-    public void updateView(MapView view, CatalystStylesDiffMap props) {
-        Log.i(TAG, props.toString());
-        super.updateView(view, props);
-        if (props.hasKey(PROP_CENTER)) updateCenter(props);
-        if (props.hasKey(PROP_ZOOM_LEVEL)) updateCenter(props);
-        if (props.hasKey(PROP_MARKERS)) updateMarkers(props);
-        if (props.hasKey(PROP_ZOOM_ON_MARKERS)&&props.getBoolean(PROP_ZOOM_ON_MARKERS, false)) {
-            zoomOnMarkers();
-        }
-
-    }
-
     private int getResourceDrawableId(String name) {
         try {
             return reactContext.getResources().getIdentifier(
@@ -294,4 +325,3 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
 
 
 }
-
