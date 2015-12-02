@@ -209,9 +209,8 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
                  * "real" LNG and LAT values...
                  */
                     cameraUpdate = CameraUpdateFactory
-                            .newLatLngZoom(
-                                    new LatLng(lat, lng),
-                                    mlastZoom
+                            .newLatLng(
+                                    new LatLng(lat, lng)
                             );
                 }
 
