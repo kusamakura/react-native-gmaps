@@ -216,6 +216,8 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
                 e.printStackTrace();
                 return false;
             }
+        } else {
+            return false;
         }
     }
 
