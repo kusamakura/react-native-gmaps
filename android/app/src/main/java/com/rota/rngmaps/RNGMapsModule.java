@@ -147,6 +147,7 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
 
                 params.putMap("latLng", latLng);
                 params.putInt("zoomLevel",(int) position.zoom);
+                mlastZoom = (int) position.zoom;
 
                 reactContext
                         .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
