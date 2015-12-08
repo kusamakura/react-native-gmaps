@@ -15,6 +15,7 @@ let {
 var gmaps = {
   name: 'RNGMaps',
   propTypes: {
+    ...View.propTypes,
     center: PropTypes.object,
     zoomLevel: PropTypes.number,
     markers: PropTypes.array,
