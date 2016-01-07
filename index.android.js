@@ -20,6 +20,7 @@ var gmaps = {
     zoomLevel: PropTypes.number,
     markers: PropTypes.array,
     zoomOnMarkers: PropTypes.bool,
+    clickMarker: PropTypes.number,
 
     /* Hackedy hack hack hack */
     scaleX: React.PropTypes.number,
@@ -108,6 +109,7 @@ componentDidMount () {
     if(this._diffMarkers(nextProps.markers, this.state.markers)) {
       this.updateMarkers(nextProps.markers);
     }
+    console.log('clickMarker:' + nextProps.clickMarker);
   }
 
   render () {

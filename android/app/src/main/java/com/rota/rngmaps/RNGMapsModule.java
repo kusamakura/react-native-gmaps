@@ -11,25 +11,17 @@ import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableType;
-import com.facebook.react.bridge.WritableArray;
-import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
-import com.facebook.react.uimanager.CatalystStylesDiffMap;
 import com.facebook.react.uimanager.SimpleViewManager;
 import com.facebook.react.uimanager.ThemedReactContext;
-import com.facebook.react.uimanager.UIProp;
 import com.facebook.react.uimanager.ReactProp;
 import com.google.android.gms.maps.*;
 import com.google.android.gms.maps.model.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 
-/**
- * Created by Henry on 08/10/2015.
- */
 
 public class RNGMapsModule extends SimpleViewManager<MapView> {
     public static final String REACT_CLASS = "RNGMaps";
@@ -56,6 +48,7 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
     public static final String PROP_ZOOM_LEVEL = "zoomLevel";
     public static final String PROP_MARKERS = "markers";
     public static final String PROP_ZOOM_ON_MARKERS = "zoomOnMarkers";
+    public static final String PROP_CLICK_MARKER = "clickMarker";
 
     @ReactProp(name = PROP_CENTER)
     public void setPropCenter(MapView view, @Nullable ReadableMap center) {
@@ -89,6 +82,28 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
         properties.putBoolean(PROP_ZOOM_ON_MARKERS, shallZoomOnMarkers);
         if (shallZoomOnMarkers) {
             zoomOnMarkers();
+        }
+    }
+
+    @ReactProp(name = PROP_CLICK_MARKER)
+    public void setPropClickMarker(MapView view, @Nullable Integer clickMarker) {
+        String key = String.valueOf(clickMarker);
+        Log.i(TAG, key);
+        if (clickMarker == null) {
+            if (properties.hasKey(PROP_CLICK_MARKER)) {
+                if (markerLookup.containsKey(String.valueOf(properties.getInt(PROP_CLICK_MARKER)))) {
+                    Marker marker = mapMarkers.get(Integer.parseInt(markerLookup.get(String.valueOf(properties.getInt(PROP_CLICK_MARKER)))) );
+                    marker.hideInfoWindow();
+                    Log.i(TAG, "hideInfoWindow");
+                }
+            }
+        } else {
+            properties.putInt(PROP_CLICK_MARKER, clickMarker);
+            if (markerLookup.containsKey(key)) {
+                Marker marker = mapMarkers.get( Integer.parseInt(markerLookup.get(key)) );
+                marker.showInfoWindow();
+                Log.i(TAG, "showInfoWindow" + String.valueOf(marker));
+            }
         }
     }
 
@@ -170,7 +185,7 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
             @Override
             public boolean onMarkerClick(Marker marker) {
                 String id = marker.getId();
-
+                Log.i(TAG, "onMarkerClick " + id);
                 if (markerLookup.containsKey(id)) {
                     WritableMap event = Arguments.createMap();
                     event.putString("id", markerLookup.get(id));
@@ -290,7 +305,9 @@ public class RNGMapsModule extends SimpleViewManager<MapView> {
                     Marker marker = map.addMarker(options);
 
                     if (markerJson.hasKey("id")) {
+                        // As we have to lookup it either way, switch it around
                         markerLookup.put(marker.getId(), markerJson.getString("id"));
+                        markerLookup.put(markerJson.getString("id"), marker.getId().replace("m",""));
                     }
 
                     mapMarkers.add(marker);
